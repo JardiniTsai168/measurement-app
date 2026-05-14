@@ -13,7 +13,7 @@ export interface Rect {
 export interface CardDetection {
   rect: Rect;
   confidence: number;
-  pixelsPerCm: number; // derived from rect width / 8.56
+  pixelsPerCm: number; // derived from rect width / 8.5
 }
 
 export interface Measurement {
@@ -24,6 +24,9 @@ export interface Measurement {
   headPoint: Point;
   tailPoint: Point;
   lengthCm: number;
+  widthCm?: number;
+  widthStart?: Point;
+  widthEnd?: Point;
   gpsLat?: number;
   gpsLng?: number;
   weather?: {
@@ -34,7 +37,7 @@ export interface Measurement {
   };
 }
 
-export type AppStep = 'home' | 'camera' | 'edit-card' | 'edit-fish' | 'result' | 'history';
+export type AppStep = 'home' | 'camera' | 'edit-card' | 'edit-object' | 'result' | 'history';
 
 export interface CvModule {
   Mat: any;

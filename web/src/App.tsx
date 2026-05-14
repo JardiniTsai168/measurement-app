@@ -3,10 +3,11 @@ import type { Measurement, AppStep, Rect, Point } from './types';
 import HomePage from './components/HomePage';
 import CameraPage from './components/CameraPage';
 import EditCardPage from './components/EditCardPage';
-import EditFishPage from './components/EditFishPage';
+import EditObjectPage from './components/EditObjectPage';
 import ResultPage from './components/ResultPage';
 import HistoryPage from './components/HistoryPage';
 import { saveMeasurement } from './utils/db';
+import { fetchWeather } from './utils/weather';
 
 export default function App() {
   const [step, setStep] = useState<AppStep>('home');
@@ -23,32 +24,54 @@ export default function App() {
 
   const onCardConfirmed = useCallback((rect: Rect) => {
     setCardRect(rect);
-    setStep('edit-fish');
+    setStep('edit-object');
   }, []);
 
-  const onFishConfirmed = useCallback((head: Point, tail: Point, lenCm: number) => {
+  const onObjectConfirmed = useCallback((
+    lengthStart: Point,
+    lengthEnd: Point,
+    widthStart: Point | null,
+    widthEnd: Point | null,
+    lengthCm: number,
+    widthCm: number | null
+  ) => {
     const m: Measurement = {
       id: crypto.randomUUID(),
       timestamp: Date.now(),
       imageDataUrl,
       cardRect,
-      headPoint: head,
-      tailPoint: tail,
-      lengthCm: Number(lenCm.toFixed(2)),
+      headPoint: lengthStart,
+      tailPoint: lengthEnd,
+      lengthCm: Number(lengthCm.toFixed(2)),
+      widthCm: widthCm ? Number(widthCm.toFixed(2)) : undefined,
+      widthStart: widthStart ?? undefined,
+      widthEnd: widthEnd ?? undefined,
     };
+
+    setResult(m);
+    setStep('result');
+
+    // Fetch GPS + weather asynchronously after showing result
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          m.gpsLat = pos.coords.latitude;
-          m.gpsLng = pos.coords.longitude;
-          setResult({...m});
+        async (pos) => {
+          const updated: Measurement = {
+            ...m,
+            gpsLat: pos.coords.latitude,
+            gpsLng: pos.coords.longitude,
+          };
+          // Try fetch weather
+          const weather = await fetchWeather(pos.coords.latitude, pos.coords.longitude);
+          if (weather) {
+            updated.weather = weather;
+          }
+          setResult(updated);
         },
-        () => { setResult({...m}); }
+        () => {
+          // GPS failed, keep result without location
+        }
       );
-    } else {
-      setResult(m);
     }
-    setStep('result');
   }, [imageDataUrl, cardRect]);
 
   const onSaveToHistory = useCallback((m: Measurement) => {
@@ -71,11 +94,11 @@ export default function App() {
           onBack={() => goto('camera')}
         />
       )}
-      {step === 'edit-fish' && imageDataUrl && cardRect.w > 0 && (
-        <EditFishPage
+      {step === 'edit-object' && imageDataUrl && cardRect.w > 0 && (
+        <EditObjectPage
           imageDataUrl={imageDataUrl}
           cardRect={cardRect}
-          onConfirm={onFishConfirmed}
+          onConfirm={onObjectConfirmed}
           onBack={() => goto('edit-card')}
         />
       )}

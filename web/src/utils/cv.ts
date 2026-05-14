@@ -1,6 +1,6 @@
 import type { Rect, Point } from '../types';
 
-const CARD_WIDTH_MM = 85.6;
+const CARD_WIDTH_MM = 85.0;
 const CARD_HEIGHT_MM = 54.0;
 
 export function isCvReady(): boolean {
@@ -151,14 +151,23 @@ export function calculatePixelsPerCm(cardRect: Rect): number {
   return pxWidth / cmWidth;
 }
 
-export function calculateFishLength(
-  head: Point,
-  tail: Point,
+export function calculateLengthCm(
+  p1: Point,
+  p2: Point,
   pixelsPerCm: number,
   imageScale = 1
 ): number {
-  const dx = (head.x - tail.x) * imageScale;
-  const dy = (head.y - tail.y) * imageScale;
+  const dx = (p1.x - p2.x) * imageScale;
+  const dy = (p1.y - p2.y) * imageScale;
   const pxLen = Math.sqrt(dx * dx + dy * dy);
   return pxLen / pixelsPerCm;
+}
+
+export function calculateWidthCm(
+  w1: Point,
+  w2: Point,
+  pixelsPerCm: number,
+  imageScale = 1
+): number {
+  return calculateLengthCm(w1, w2, pixelsPerCm, imageScale);
 }

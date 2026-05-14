@@ -1,7 +1,6 @@
-import { useEffect, useRef, useCallback } from 'react';
-import { FaDownload, FaHome, FaHistory, FaCamera, FaMapMarkerAlt, FaThermometerHalf, FaWind } from 'react-icons/fa';
+import { useRef, useCallback, useState } from 'react';
+import { FaDownload, FaHome, FaHistory, FaCamera, FaMapMarkerAlt, FaThermometerHalf, FaWind, FaSave } from 'react-icons/fa';
 import type { Measurement } from '../types';
-import { saveMeasurement } from '../utils/db';
 
 interface Props {
   measurement: Measurement;
@@ -11,16 +10,14 @@ interface Props {
   onHome: () => void;
 }
 
-export default function ResultPage({ measurement, onNew, onHistory, onHome }: Props) {
-  const saved = useRef(false);
+export default function ResultPage({ measurement, onSave, onNew, onHistory, onHome }: Props) {
   const cardRef = useRef<HTMLDivElement>(null);
+  const [saved, setSaved] = useState(false);
 
-  useEffect(() => {
-    if (!saved.current) {
-      saved.current = true;
-      saveMeasurement(measurement).catch(() => {});
-    }
-  }, [measurement]);
+  const handleSave = useCallback(() => {
+    onSave(measurement);
+    setSaved(true);
+  }, [onSave, measurement]);
 
   const downloadCard = useCallback(() => {
     const el = cardRef.current;
@@ -62,16 +59,27 @@ export default function ResultPage({ measurement, onNew, onHistory, onHome }: Pr
       ctx.fillStyle = '#1A1A5E';
       ctx.font = 'bold 72px -apple-system, sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText('鯊魚量', cardW / 2, iy + ih + 100);
+      ctx.fillText('物體量測', cardW / 2, iy + ih + 100);
 
       // Length big number
       ctx.fillStyle = '#FF6B9D';
-      ctx.font = 'bold 220px -apple-system, sans-serif';
-      ctx.fillText(`${measurement.lengthCm}`, cardW / 2, iy + ih + 300);
+      ctx.font = 'bold 180px -apple-system, sans-serif';
+      ctx.fillText(`${measurement.lengthCm}`, cardW / 2, iy + ih + 280);
 
       ctx.fillStyle = '#1A1A5E';
-      ctx.font = '48px -apple-system, sans-serif';
-      ctx.fillText('cm', cardW / 2, iy + ih + 370);
+      ctx.font = '40px -apple-system, sans-serif';
+      ctx.fillText(`cm 長度`, cardW / 2, iy + ih + 330);
+
+      // Width
+      if (measurement.widthCm) {
+        ctx.fillStyle = '#1A1A5E';
+        ctx.font = 'bold 120px -apple-system, sans-serif';
+        ctx.fillText(`${measurement.widthCm}`, cardW / 2, iy + ih + 460);
+
+        ctx.fillStyle = '#6b6375';
+        ctx.font = '36px -apple-system, sans-serif';
+        ctx.fillText(`cm 寬度`, cardW / 2, iy + ih + 510);
+      }
 
       // Date
       const dateStr = new Date(measurement.timestamp).toLocaleString('zh-TW', {
@@ -107,7 +115,7 @@ export default function ResultPage({ measurement, onNew, onHistory, onHome }: Pr
       ctx.fillText('measurement_app MVP', cardW / 2, cardH - 60);
 
       const link = document.createElement('a');
-      link.download = `fish_${measurement.lengthCm}cm_${Date.now()}.png`;
+      link.download = `object_${measurement.lengthCm}cm_${Date.now()}.png`;
       link.href = c.toDataURL('image/png');
       link.click();
     };
@@ -125,19 +133,30 @@ export default function ResultPage({ measurement, onNew, onHistory, onHome }: Pr
 
       <div className="flex-1 flex flex-col items-center px-6">
         {/* Result Card */}
-        <div ref={cardRef} className="w-full bg-white rounded-2xl shadow-lg shadow-primary/10 overflow-hidden mb-6">
+        <div className="w-full bg-white rounded-2xl shadow-lg shadow-primary/10 overflow-hidden mb-6">
           <div className="relative">
-            <img src={measurement.imageDataUrl} alt="fish" className="w-full h-64 object-cover" />
+            <img src={measurement.imageDataUrl} alt="object" className="w-full h-64 object-cover" />
             <div className="absolute top-3 right-3 bg-primary text-white px-3 py-1 rounded-lg text-sm font-bold shadow">
-              魚長量測
+              物體量測
             </div>
           </div>
           <div className="p-5 text-center">
-            <div className="text-sm text-dark/50 mb-1">量測長度</div>
-            <div className="text-6xl font-bold text-primary tracking-tight">
-              {measurement.lengthCm.toFixed(1)}
-              <span className="text-2xl text-dark/40 ml-1">cm</span>
+            <div className="text-sm text-dark/50 mb-1">量測結果</div>
+            <div className="flex items-baseline justify-center gap-2">
+              <div className="text-5xl font-bold text-primary tracking-tight">
+                {measurement.lengthCm.toFixed(1)}
+                <span className="text-xl text-dark/40 ml-1">cm</span>
+              </div>
+              {measurement.widthCm && (
+                <div className="text-3xl font-bold text-dark tracking-tight">
+                  × {measurement.widthCm.toFixed(1)}
+                  <span className="text-lg text-dark/40 ml-1">cm</span>
+                </div>
+              )}
             </div>
+            {measurement.widthCm && (
+              <div className="text-xs text-dark/40 mt-1">長度 × 寬度</div>
+            )}
           </div>
 
           <div className="px-5 pb-5 space-y-2">
@@ -177,6 +196,18 @@ export default function ResultPage({ measurement, onNew, onHistory, onHome }: Pr
           >
             <FaDownload size={16} />
             下載資訊卡片
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={saved}
+            className={`w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl font-semibold active:scale-[0.97] transition-transform ${
+              saved
+                ? 'bg-green-50 text-green-600'
+                : 'bg-dark/5 text-dark'
+            }`}
+          >
+            <FaSave size={16} />
+            {saved ? '已儲存到歷史記錄' : '儲存到歷史記錄'}
           </button>
         </div>
       </div>

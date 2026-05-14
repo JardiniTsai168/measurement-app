@@ -235,7 +235,7 @@ export default function EditCardPage({ imageDataUrl, onConfirm, onBack }: Props)
         <div className="flex items-start gap-2 bg-white/10 rounded-lg p-3">
           <FaLightbulb className="text-primary mt-0.5 shrink-0" size={14} />
           <p className="text-xs text-white/70 leading-relaxed">
-            請確保信用卡跟魚在同一平面，相機盡量垂直拍攝。拖動邊界上的小圓點可以放大或縮小。
+            請確保信用卡跟物體在同一平面，相機盡量垂直拍攝。拖動邊界上的小圓點可以放大或縮小。
           </p>
         </div>
         <div className="flex gap-3">

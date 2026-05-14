@@ -45,7 +45,7 @@ export default function HistoryPage({ onBack, onSelect }: Props) {
       {items.length === 0 ? (
         <div className="flex-1 flex flex-col items-center justify-center text-dark/30 px-6">
           <p className="text-center">還沒有量測記錄</p>
-          <p className="text-sm mt-1">去拍張魚的照片吧！</p>
+          <p className="text-sm mt-1">去拍張照片量測物體吧！</p>
         </div>
       ) : (
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
@@ -60,6 +60,13 @@ export default function HistoryPage({ onBack, onSelect }: Props) {
                 <div className="flex items-baseline gap-1">
                   <span className="text-2xl font-bold text-primary">{m.lengthCm.toFixed(1)}</span>
                   <span className="text-sm text-dark/40">cm</span>
+                  {m.widthCm && (
+                    <>
+                      <span className="text-lg text-dark/30 mx-0.5">×</span>
+                      <span className="text-xl font-bold text-dark">{m.widthCm.toFixed(1)}</span>
+                      <span className="text-sm text-dark/40">cm</span>
+                    </>
+                  )}
                 </div>
                 <div className="text-xs text-dark/50 mt-0.5">
                   {new Date(m.timestamp).toLocaleString('zh-TW', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
